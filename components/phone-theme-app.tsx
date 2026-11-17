@@ -59,20 +59,135 @@ import {
   resetThemePackageState,
 } from "@/lib/theme-package";
 
-/* ══════════════════════════════════════════
-   可爱主题外观配置（你只需要改这里）
-   ══════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════════
+   ⬇⬇⬇  外观自定义区（你只需要改这里）  ⬇⬇⬇
+   ════════════════════════════════════════════════════════════════════ */
 
-/** 桌面默认背景色：浅粉色 */
-const DESKTOP_BG_COLOR = "#FFE4EC";
-
-/** 想换成图片背景时，把图片链接填到这里，例如 "https://example.com/bg.jpg"；留空则使用上面的浅粉色 */
+/**
+ * 1) 桌面背景图片（可选）
+ *    - 留空 ""  → 使用「浅粉色 iOS 玻璃质感」渐变背景
+ *    - 填图片 → 例如 "https://example.com/bg.jpg" 或 "/bg.png"（public 目录下）
+ */
 const DESKTOP_BG_IMAGE = "";
 
-/** 可爱字体：站酷快乐体（Google Fonts），加载失败时回退到系统可爱字体 */
-const CUTE_FONT_URL = "https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap";
-const CUTE_FONT_FAMILY =
-  "'ZCOOL KuaiLe', 'Comic Sans MS', 'Yuanti SC', 'YouYuan', 'Microsoft YaHei', sans-serif";
+/**
+ * 2) App 图标的圆角大小
+ *    iOS 图标是超椭圆，用百分比圆角近似：22.37% 就是苹果 App 图标那种形状。
+ *    想更方一点就调小（如 18%），想更圆一点就调大（如 28%）。
+ */
+const IOS_ICON_RADIUS = "22.37%";
+
+const DESKTOP_BG_IMAGE_CSS = DESKTOP_BG_IMAGE ? `url("${DESKTOP_BG_IMAGE}")` : "none";
+
+const DESKTOP_APPEARANCE_CSS = `
+:root {
+  --custom-desktop-bg-image: ${DESKTOP_BG_IMAGE_CSS};
+  --custom-ios-icon-radius: ${IOS_ICON_RADIUS};
+}
+
+/* ────────────────────────────────────────────────
+   一、整个桌面的背景：浅粉色 iOS 玻璃质感
+   ──────────────────────────────────────────────── */
+html,
+body {
+  background-color: #ffeaf3 !important;
+}
+
+html body .phone-shell,
+html body .phone-screen,
+html body .desktop,
+html body .desktop-root,
+html body .desktop-surface,
+html body .desktop-page,
+html body .home-screen,
+html body .home,
+html body [data-ui="desktop"],
+html body [data-ui="desktop-root"],
+html body [data-ui="phone-screen"] {
+  background-color: #ffeaf3 !important;
+  background-image:
+    var(--custom-desktop-bg-image),
+    radial-gradient(120% 70% at 12% 0%, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0) 62%),
+    radial-gradient(110% 80% at 88% 8%, rgba(255, 196, 222, 0.85) 0%, rgba(255, 196, 222, 0) 60%),
+    radial-gradient(140% 90% at 50% 110%, rgba(255, 168, 205, 0.85) 0%, rgba(255, 168, 205, 0) 70%),
+    linear-gradient(160deg, #fff6fa 0%, #ffe3ef 42%, #ffd1e4 100%) !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+  -webkit-backdrop-filter: saturate(180%) blur(24px) !important;
+  backdrop-filter: saturate(180%) blur(24px) !important;
+}
+
+/* ────────────────────────────────────────────────
+   二、所有 App 图标：iOS 苹果 App 圆角形状
+   ──────────────────────────────────────────────── */
+html body .app-icon,
+html body .app-icon-frame,
+html body .app-icon-box,
+html body .desktop-icon,
+html body .desktop-icon-frame,
+html body .desktop-app,
+html body .dock-icon,
+html body .dock-icon-frame,
+html body .icon-frame,
+html body .icon-box,
+html body .is-frame,
+html body .is-dock-preview,
+html body [data-ui="app-icon"],
+html body [data-ui="desktop-icon"],
+html body [data-ui="icon"],
+html body [data-ui="icon-frame"],
+html body [data-icon-frame] {
+  border-radius: var(--custom-ios-icon-radius) !important;
+  -webkit-border-radius: var(--custom-ios-icon-radius) !important;
+  overflow: hidden !important;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  clip-path: none !important;
+  background-clip: padding-box !important;
+  isolation: isolate;
+}
+
+/* 图标内部的图片 / 图形也要跟着变成圆角 */
+html body .app-icon img,
+html body .app-icon canvas,
+html body .desktop-icon img,
+html body .icon-frame img,
+html body .is-frame-img,
+html body .dock-icon img,
+html body [data-ui="app-icon"] img,
+html body [data-ui="icon"] img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: inherit !important;
+  display: block;
+  overflow: hidden;
+}
+`;
+
+const DESKTOP_APPEARANCE_STYLE_ID = "custom-desktop-appearance-style";
+
+function ensureDesktopAppearanceStyle() {
+  if (typeof document === "undefined") return;
+  const host = document.head ?? document.documentElement;
+  if (!host) return;
+  if (document.getElementById(DESKTOP_APPEARANCE_STYLE_ID)) return;
+  const styleEl = document.createElement("style");
+  styleEl.id = DESKTOP_APPEARANCE_STYLE_ID;
+  styleEl.textContent = DESKTOP_APPEARANCE_CSS;
+  host.appendChild(styleEl);
+}
+
+// 模块加载时立刻注入（客户端），这样一进应用就能看到效果
+if (typeof document !== "undefined") {
+  ensureDesktopAppearanceStyle();
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   ⬆⬆⬆  外观自定义区结束，下面是原来的逻辑，未做其它改动  ⬆⬆⬆
+   ════════════════════════════════════════════════════════════════════ */
 
 type ThemeSection =
   | "menu"
@@ -204,58 +319,6 @@ export function PhoneThemeApp({
   iconSkins,
   wallpaperStyle,
 }: PhoneThemeAppProps) {
-  /* ===== 可爱外观全局注入：浅粉背景 / 圆形图标 / 可爱字体 ===== */
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    const styleId = "cute-desktop-theme";
-    if (document.getElementById(styleId)) return;
-
-    if (!document.querySelector('link[data-cute-font="true"]')) {
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = CUTE_FONT_URL;
-      link.setAttribute("data-cute-font", "true");
-      document.head.appendChild(link);
-    }
-
-    const bgImageRule = DESKTOP_BG_IMAGE
-      ? `html, body, .phone-shell, .page-shell, .theme-section-page, .page-menu {
-           background-image: url("${DESKTOP_BG_IMAGE}") !important;
-           background-size: cover !important;
-           background-position: center !important;
-           background-repeat: no-repeat !important;
-         }`
-      : "";
-
-    const style = document.createElement("style");
-    style.id = styleId;
-    style.textContent = `
-      :root {
-        --c-page-body-bg: ${DESKTOP_BG_COLOR} !important;
-        --c-header-bg: #FFF0F5 !important;
-        --c-card: rgba(255, 240, 245, 0.8) !important;
-        --c-card-border: #FFD1DC !important;
-        --c-panel: #FFF5F8 !important;
-        --c-panel-border: #FFD1DC !important;
-        --c-input: #FFF0F5 !important;
-        --app-font-family: ${CUTE_FONT_FAMILY} !important;
-      }
-      html, body, .phone-shell, .page-shell, .theme-section-page, .page-menu {
-        background-color: ${DESKTOP_BG_COLOR} !important;
-        font-family: ${CUTE_FONT_FAMILY} !important;
-      }
-      ${bgImageRule}
-      .is-frame, .is-frame-img, .is-dock-preview, .desktop-icon, .desktop-icon-inner, .app-icon, .icon-tile, .icon-wrapper {
-        border-radius: 50% !important;
-        overflow: hidden !important;
-      }
-      button, input, textarea, select {
-        font-family: ${CUTE_FONT_FAMILY} !important;
-      }
-    `;
-    document.head.appendChild(style);
-  }, []);
-
   const [section, setSection] = useState<ThemeSection>(() => {
     if (typeof window !== "undefined") {
       const pending = sessionStorage.getItem("mascot-theme-section");
@@ -275,6 +338,11 @@ export function PhoneThemeApp({
   const importFileRef = useRef<HTMLInputElement>(null);
   const statusBarTop = Number(draft.cssOverrides["--status-bar-top"]?.replace("px", "") || "12");
   const islandHidden = draft.cssOverrides["--status-island-visibility"] === "hidden";
+
+  // 确保外观样式一定被注入（防止极早期渲染时模块顶层注入被清理）
+  useEffect(() => {
+    ensureDesktopAppearanceStyle();
+  }, []);
 
   const handleExportTheme = useCallback(async () => {
     setThemeTransferBusy(true);
@@ -709,13 +777,13 @@ export function PhoneThemeApp({
 
 type ColorItem = { key: string; label: string; defaultValue: string };
 const COLOR_ITEMS: ColorItem[] = [
-  { key: "--c-header-bg", label: "标题栏", defaultValue: "#FFF0F5" },
-  { key: "--c-page-body-bg", label: "内容区", defaultValue: DESKTOP_BG_COLOR },
-  { key: "--c-card", label: "卡片", defaultValue: "rgba(255, 240, 245, 0.78)" },
-  { key: "--c-card-border", label: "卡片边框", defaultValue: "#FFD1DC" },
-  { key: "--c-panel", label: "面板", defaultValue: "#FFF5F8" },
-  { key: "--c-panel-border", label: "面板边框", defaultValue: "#FFD1DC" },
-  { key: "--c-input", label: "输入框", defaultValue: "#FFF0F5" },
+  { key: "--c-header-bg", label: "标题栏", defaultValue: "#FFFFFF" },
+  { key: "--c-page-body-bg", label: "内容区", defaultValue: "#F1F2F6" },
+  { key: "--c-card", label: "卡片", defaultValue: "rgba(255, 255, 255, 0.7)" },
+  { key: "--c-card-border", label: "卡片边框", defaultValue: "#E0E0E0" },
+  { key: "--c-panel", label: "面板", defaultValue: "#FFFFFF" },
+  { key: "--c-panel-border", label: "面板边框", defaultValue: "#D9DADB" },
+  { key: "--c-input", label: "输入框", defaultValue: "#F2F3F5" },
   { key: "--c-input-border", label: "输入框边框", defaultValue: "rgba(224, 226, 229, 0)" },
 ];
 
