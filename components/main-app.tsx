@@ -151,23 +151,75 @@ async function warmBuiltinFonts(shouldStop: () => boolean): Promise<void> {
 
 function SplashScreen({ ready = false, onEnter }: { ready?: boolean; onEnter?: () => void }) {
   return (
-    <main className="app-root splash-root">
-      <section
-        className="phone-shell-wrap splash-shell-wrap"
-        aria-label={TEXT.loading}
-      >
-        <div className="phone-case">
+    <main className="app-root splash-root" style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: "100dvh",
+      margin: 0,
+      background: "#000",
+      position: "relative"
+    }}>
+      {/* 1. iOS 高级弥散光背景 */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+        background: "radial-gradient(circle at 15% 15%, rgba(255,100,200,0.2) 0%, transparent 40%), radial-gradient(circle at 85% 85%, rgba(100,200,255,0.2) 0%, transparent 40%), #09090b",
+        zIndex: 0
+      }} />
+
+      <section className="phone-shell-wrap splash-shell-wrap" style={{ zIndex: 1, position: "relative" }}>
+        {/* 2. 模拟手机外壳的毛玻璃质感 */}
+        <div className="phone-case" style={{
+          background: "rgba(255, 255, 255, 0.03)",
+          backdropFilter: "blur(30px)",
+          WebkitBackdropFilter: "blur(30px)",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          boxShadow: "0 30px 60px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.15)",
+          borderRadius: "50px",
+          padding: "4px"
+        }}>
           <div className="phone-frame">
-            <div className="phone-shell splash-phone-screen">
+            {/* 3. 手机屏幕内部 */}
+            <div className="phone-shell splash-phone-screen" style={{
+              borderRadius: "46px",
+              overflow: "hidden",
+              position: "relative",
+              background: "rgba(20, 20, 25, 0.2)",
+              border: "1px solid rgba(255,255,255,0.05)"
+            }}>
               <SplashAnimation />
+              
+              {/* 4. 极简高光玻璃按钮 */}
               <button
                 type="button"
                 className={ready ? "splash-enter-button splash-enter-button-show" : "splash-enter-button"}
                 onClick={onEnter}
                 disabled={!ready}
                 aria-label="Enter"
+                style={{
+                  position: "absolute",
+                  bottom: "40px",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  width: "56px",
+                  height: "56px",
+                  borderRadius: "50%",
+                  background: "rgba(255, 255, 255, 0.15)",
+                  backdropFilter: "blur(20px)",
+                  WebkitBackdropFilter: "blur(20px)",
+                  border: "1px solid rgba(255, 255, 255, 0.3)",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.4)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#fff",
+                  cursor: ready ? "pointer" : "not-allowed",
+                  transition: "all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)",
+                  opacity: ready ? 1 : 0,
+                  pointerEvents: ready ? "auto" : "none",
+                }}
               >
-                <ArrowRight size={18} strokeWidth={1.8} />
+                <ArrowRight size={22} strokeWidth={1.5} />
               </button>
             </div>
           </div>
